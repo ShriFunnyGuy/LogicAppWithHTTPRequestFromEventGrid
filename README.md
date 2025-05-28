@@ -45,6 +45,88 @@ Now that we have Azure EventGrid set up and working as expected, we need to set 
 Step 1: Set Schema
 To understand the schema format, let’s start by uploading a CSV file to the storage account.
 
+![image](https://github.com/user-attachments/assets/406533a6-cf0a-4721-8e22-7b980a66b66b)
+
+In your LogicApp, click Run History and select the latest run History to perform an inspection.
+
+![image](https://github.com/user-attachments/assets/0c400ce7-6c6e-484c-8811-e8a30b548b2b)
+
+Copy the Body of the HTTP request received from EventGrid. This will help pick up the necessary information going forward
+
+![image](https://github.com/user-attachments/assets/30cd1d87-a147-4012-8a5b-d96c51d30f1d)
+
+[
+  {
+    "topic": "/subscriptions/xxxxxxxxxxxxxxx/resourceGroups/docker_rg/providers/Microsoft.Storage/storageAccounts/airflowdatalakestaging",
+    "subject": "/blobServices/default/containers/airflowcontainer/blobs/logicapp_eventgrid/cust_1.csv",
+    "eventType": "Microsoft.Storage.BlobCreated",
+    "id": "247654f7-e01e-006d-7ce8-a0d3c00646dc",
+    "data": {
+      "api": "PutBlob",
+      "clientRequestId": "xxxxxxxxxxxxxx",
+      "requestId": "xxxxxxxxxxxxx",
+      "eTag": "0x8DD6EFF9966BE44",
+      "contentType": "text/csv",
+      "contentLength": 279,
+      "blobType": "BlockBlob",
+      "accessTier": "Default",
+      "blobUrl": "https://airflowdatalakestaging.blob.core.windows.net/airflowcontainer/logicapp_eventgrid/emp.csv",
+      "url": "https://airflowdatalakestaging.blob.core.windows.net/airflowcontainer/logicapp_eventgrid/emp.csv",
+      "sequencer": "00000000000000000000000000031601000000000000d00b",
+      "identity": "$superuser",
+      "storageDiagnostics": {
+        "batchId": "10359642-d006-0004-00e8-a0ea8c000000"
+      }
+    },
+    "dataVersion": "",
+    "metadataVersion": "1",
+    "eventTime": "2025-03-29T20:23:42.5895899Z"
+  }
+]
+
+With the information from the body, we can create a Sample Template of the information we want to capture from Azure EventGrid.
+
+{
+  "subject": "",  
+  "eventType": "",  
+  "id": "",  
+  "data": {
+    "api": "",  
+    "contentType": ""
+  },  
+  "eventTime": ""  
+}
+
+Click on the Use sample payload to generate schema link,then paste the value in.
+
+![image](https://github.com/user-attachments/assets/cbd99b18-2731-4108-a189-fffd5f4ab11e)
+
+Step 2: Set Initialize Variable
+Add a new action called Initialize Variable to capture the information from the HTTP Trigger action. In the Value tab, for your Initialize Variable, we need to set an HTML template of the message to be sent.
+
+<hr/><h2>New Blob Created in Storage</h2><hr/><b>File Path:</b>@{triggerBody()[0]?['subject']}<br/><b>Event Type:</b><span>@{triggerBody()[0]?['eventType']}</span><br/><b>API:</b>@{triggerBody()?[0]['data']?['api']}<br/><b>Content Type:</b>@{triggerBody()?[0]['data']?['contentType']}<br/><b>Event Time:</b><span>@{addHours(triggerBody()?[0]['eventTime'],1)}</span><br/><hr/><b>Information:</b><br/><p>The operation was successfull!</p><hr/>
+
+![image](https://github.com/user-attachments/assets/fc166a70-9161-4a2e-aa04-c5b73c199803)
+
+Step 3: Set Send an Email Action
+Add a new action. Send an Outlook message and fill in the Dynamic content of the Email variable. Ensure you save the Flow before leaving the tab.
+
+![image](https://github.com/user-attachments/assets/25664a12-55c8-4448-b550-496620b6a03e)
+
+Step 4: Test Flow Logic
+With all the necessary actions added, let’s test the flow by adding a new document (DEPT.csv) to the storage account.
+
+With the new document uploaded, wait for a few seconds and confirm the flow in Run history.
+
+![image](https://github.com/user-attachments/assets/4e07728e-97fd-4478-886a-b2e10129b31c)
+
+Check the Email to confirm information was also sent to Outlook with the captured requirements.
+
+![image](https://github.com/user-attachments/assets/170ce929-63ed-4e46-923e-47880fb93db3)
+
+
+
+
 
 
 
